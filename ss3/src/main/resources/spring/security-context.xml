@@ -16,7 +16,7 @@
 
 	<!-- 권한이 없는 페이지를 접근할 경우 접근 불가 메시지 출력 -->
 	<http auto-config="true">
-		<!-- spring 4.x때 추가된 옵션으로 ssl을 사용하지 않을 경우 csrf는 disalbed=true로 설정. -->
+		<!-- spring 4.x때 추가된 옵션으로 ssl을 사용하지 않을 경우 csrf는 disabled=true로 설정. -->
 		<csrf disabled="true" />
 
 		<!-- 모든 사용자 접근 -->
@@ -70,7 +70,11 @@
 
 	<authentication-manager>
 		<authentication-provider user-service-ref="userService">
+			<password-encoder ref="bcryptEncoder"/>
 		</authentication-provider>
 	</authentication-manager>
+
+	<!-- bcrypt : 패스워드 암호화에 특화된 password hashing function -->
+	<beans:bean id="bcryptEncoder" class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder"/>
 
 </beans:beans>

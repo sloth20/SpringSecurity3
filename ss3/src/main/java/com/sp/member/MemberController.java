@@ -6,6 +6,7 @@ import java.util.Map;
 import javax.servlet.http.HttpSession;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -19,7 +20,10 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class MemberController {
 	@Autowired
 	private MemberService service;
-
+ 
+	@Autowired
+	private BCryptPasswordEncoder bcryptEncoder;
+	
 	// 변경할 시작 부분
 	// ----------------------------------------------------------------------
 	@RequestMapping(value = "/member/login", method = RequestMethod.GET)
@@ -91,7 +95,8 @@ public class MemberController {
 		// 회원 가입
 
 		// 패스워드 암호화
-
+		String encPwd = bcryptEncoder.encode(member.getUserPwd());
+		member.setUserPwd(encPwd);
 		try {
 			service.insertMember(member);
 		} catch (Exception e) {
@@ -161,19 +166,16 @@ public class MemberController {
 		// 패스워드 검사
 
 		SessionInfo info = (SessionInfo) session.getAttribute("member");
-		if (info == null) {
-			return "redirect:/member/login";
-		}
-
 		Member dto = service.readMember(info.getUserId());
 		if (dto == null) {
 			session.invalidate();
 			return "redirect:/";
 		}
 
-		// 패스워드 암호화
+		// 패스워드 검사
+		boolean bPwd = bcryptEncoder.matches(userPwd, dto.getUserPwd());
 
-		if (dto.getUserPwd().equals(userPwd)) {
+		if (bPwd) {
 			if (mode.equals("update")) {
 				model.addAttribute("dto", dto);
 				model.addAttribute("mode", "update");
@@ -221,7 +223,8 @@ public class MemberController {
 		}
 
 		// 패스워드 암호화
-
+		String encPwd = bcryptEncoder.encode(member.getUserPwd());
+		member.setUserPwd(encPwd);
 		try {
 			service.updateMember(member);
 		} catch (Exception e) {
